@@ -135,10 +135,10 @@ class AddRecipeButton extends React.Component {
     const display = this.state.display;
     return (
       <div className="mod">
-      <button onClick={() => this.openModal()}>
+      <button id="openModal" onClick={() => this.openModal()}>
         Add Recipe
       </button>
-      <Modal display={this.state.display} closeModal={this.closeModal.bind(this)}/>
+      <Modal display={this.state.display} closeModal={this.closeModal.bind(this)} title="Add Recipe"/>
     </div>
     );
   }
@@ -150,56 +150,72 @@ class Modal extends React.Component {
     super();
     this.state = {display: "none"};
     window.addEventListener("click", (e) => {
-      console.log(e);
-      if(e.target.parentElement.className !== "mod") {
-        this.props.closeModal()
+      if(e.target.id === "modal") {
+        this.props.closeModal();
       }
-      event.stopPropagation();
+    });
+    //close modal on "Esc"
+    document.addEventListener('keyup', (e) => {
+      if (e.keyCode === 27) {
+        this.props.closeModal();
+      }
     });
   }
 
   render() {
     const display = this.props.display;
     return (
-      <div style={{display: display}} className="mod modal">
-        <ModalTitle />
+      <div id="modal" style={{display: display}} className="modal-dialog">
+        <div className="modal-content">
+        <ModalTitle title={this.props.title}/>
         <ModalInput />
         <ModalInput />
-        <CloseButton closeModal={this.props.closeModal}/>
+        <ModalButton title={"Add"} />
+        <ModalButton title={"Close"} clicked={this.props.closeModal}/>
+        </div>
       </div>
     );
   }
 }
 
 class ModalTitle extends React.Component {
+
   render() {
     return (
       <div>
-        ModalTitle
+        {this.props.title}
       </div>
     );
   }
 }
+
+ModalTitle.defaultProps = {title: "ModalTitle"};
 
 class ModalInput extends React.Component {
+
   render() {
     return (
       <div>
-        ModalInput
+        {this.props.title}
+        <input placeholder={this.props.placeholder}>
+        </input>
       </div>
     );
   }
 }
 
-class CloseButton extends React.Component {
+ModalInput.defaultProps = {title: "Title", placeholder: "Input here..."};
+
+class ModalButton extends React.Component {
   render() {
     return (
-      <button onClick={this.props.closeModal}>
-        Close
+      <button onClick={this.props.clicked}>
+        {this.props.title}
       </button>
     );
   }
 }
+ModalButton.defaultProps = {title: "Button", clicked: () => {console.log("click");}};
 
 ReactDOM.render(
   <Layout />, document.getElementById('app')
