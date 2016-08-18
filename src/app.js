@@ -58,13 +58,6 @@ class App extends React.Component {
     }
   }
 
-  // deleteRecipe(dataArr, i) {
-  //   const recipes = JSON.parse(localStorage.getItem("recipes"));
-  //   dataArr.splice(i, 1);
-  //   this.setState({recipes: dataArr});
-  //   localStorage.setItem("recipes", JSON.stringify(dataArr));
-  // }
-
   getRecipes() {
     let result = [];
     let dataArr = this.state.recipes;
@@ -88,7 +81,6 @@ class App extends React.Component {
 
   // toggle clicked recipe
   titleClicked(arr=this.state.recipes, id=-1) {
-      // console.log("title clicked", arr, id);
       arr.map((item, i) => {
           if (i !== id) {
               return item.show = false;
@@ -101,7 +93,6 @@ class App extends React.Component {
   }
 
   showModalAdd(arr) {
-    // console.log("showModalAdd clicked, arr", arr);
     this.setState({
       modalAdd: true,
       modalTitle: "Add recipe",
@@ -161,34 +152,25 @@ class App extends React.Component {
     this.setState({newTitle: "", newIngr: "", modalAdd: false, recipes})
     localStorage.setItem("recipes", JSON.stringify(recipes));
   }
-  // editRecipe(arr, i) {
-  //   console.log("editRecipe");
-  //
-  // }
-  deleteRecipe(arr, i) {
-    // console.log("deleteRecipe");
-    arr.splice(i, 1);
 
-    this.setState({recipes: []})
+  deleteRecipe(arr, i) {
+    arr.splice(i, 1);
     this.setState({recipes: arr})
     if (arr.length === 0) {
       localStorage.removeItem("recipes");
       return
     }
-    // console.log("arr", arr);
     arr.map((item, i) => {
-      // console.log("item", item);
       return Object.assign(item, {show: false}, {id: i})
     })
     localStorage.setItem("recipes", JSON.stringify(arr));
     const fromStorage = JSON.parse(localStorage.getItem("recipes"));
-    // console.log("fromStorage", fromStorage);
-    // const recipes = fromStorage.map((item, i) => {
-    //   // add show and id properties to recipes
-    //   return Object.assign({}, item, {show: false}, {id: i});
-    // })
-    // console.log(recipes);
   }
+
+  // editRecipe(arr, i) {
+  //   console.log("editRecipe");
+  //
+  // }
 
   saveRecipe(recipes, id) {
     // console.log("save clicked", arr, id);
@@ -279,16 +261,6 @@ class App extends React.Component {
   }
 }
 
-// class Recipes extends React.Component {
-//   render() {
-//     return (
-//       <div className="recipes">
-//         {this.props.recipes}
-//       </div>
-//     );
-//   }
-// }
-
 class Recipe extends React.Component {
   // constructor() {
   //   super();
@@ -353,7 +325,6 @@ class Ingredients extends React.Component {
         <Button title={"Edit"} className="btn-gray" clicked={this.props.editRecipe}/>
       </div>
     );
-// <Button title={"Edit"} className="btn-gray" clicked={this.props.editRecipe}/>
   }
 }
 
