@@ -36,12 +36,6 @@ class App extends React.Component {
           console.log("no modals open");
           this.titleClicked();
         }
-
-        // if (!this.state.modalAdd && !this.state.showModalEdit) {
-        //   console.log("no modals open");
-        //   this.titleClicked();
-        // }
-
       }
     });
   }
@@ -110,8 +104,6 @@ class App extends React.Component {
   }
 
   showModalEdit(arr, id) {
-    console.log("modalEdit clicked", arr, id);
-
     this.setState({
       modalAdd: true,
       modalTitle: "Edit recipe",
@@ -124,7 +116,6 @@ class App extends React.Component {
       newIngr: this.joinArray(arr[id].ingredients),
       modalInputTwoValue: this.state.newIngr
     })
-
   }
 
   addRecipe() {
@@ -138,7 +129,6 @@ class App extends React.Component {
       ingredients = this.parseIngrList(ingrList);
     }
 
-    console.log(title, ingredients);
     if (title || ingredients) {
       if (!title) {
         title = "Recipe"
@@ -163,21 +153,10 @@ class App extends React.Component {
     const fromStorage = JSON.parse(localStorage.getItem("recipes"));
   }
 
-  // editRecipe(arr, i) {
-  //   console.log("editRecipe");
-  //
-  // }
-
   saveRecipe() {
-    // console.log("save clicked", recipes, id);
-    console.log("state", this.state);
-    console.log("props", this.props);
     let recipes = this.state.recipes;
     let id = this.state.id;
-
     let title = this.state.newTitle;
-    // const recipes = this.state.recipes.slice(); // arr
-    // const id = this.state.recipes.length; // id
     let ingrList = this.state.newIngr;
     const ingredients = ingrList.split(";");
 
@@ -185,38 +164,40 @@ class App extends React.Component {
       if (!title) {
         title = "Recipe"
       }
-      // recipes.push({id, title, ingredients})
       recipes[id].title = title;
       recipes[id].ingredients = ingredients
     }
+
     this.setState({newTitle: "", newIngr: "", modalAdd: false, recipes})
     localStorage.setItem("recipes", JSON.stringify(recipes));
-
-
   }
+
   parseIngrList(text='') {
     return text.split(";")
   }
+
   joinArray(arr) {
     return arr.join(";")
   }
+
   closeModal() {
     this.setState({modalAdd: false, newTitle: "", newIngr: ""})
   }
+
   closeModalEdit() {
     this.setState({showModalEdit: false})
   }
+
   newTitle(e) {
-    console.log("newTitle");
     let content = e.target.value;
-    console.log(content);
     this.setState({newTitle: content})
   }
+
   newIngr(e) {
     let content = e.target.value;
-    console.log(content);
     this.setState({newIngr: content})
   }
+
   getCurrentRecipe() {
     const recipes = this.state.recipes.slice();
     const active = recipes.map((item) => {
@@ -228,7 +209,6 @@ class App extends React.Component {
   }
 
   render() {
-    // console.log(this.state);
     const recipes = this.getRecipes();
     const style = {
       width: "100%",
@@ -265,12 +245,7 @@ class App extends React.Component {
 }
 
 class Recipe extends React.Component {
-  // constructor() {
-  //   super();
-  //   this.state = {showModalEdit: false}
-  // }
   render() {
-    // console.log("recipe, props", this.props);
     const style = {
       border: "1px solid lightgray"
     }
@@ -286,14 +261,6 @@ class Recipe extends React.Component {
           editRecipe={this.props.editRecipe} />
       </div>
     );
-    // <ModalEdit
-    //   windowTitle={"Edit recipe"}
-    //   recipe={this.props.title}
-    //   ingredients={this.props.ingredients}
-    //   display={this.props.showModalEdit}
-    //   newTitle={this.props.newTitle}
-    //   closeModal={this.props.closeModalEdit}
-    //   saveClicked={this.props.saveRecipe} />
   }
 }
 
@@ -319,7 +286,6 @@ class Ingredients extends React.Component {
     }
   }
   render() {
-    // console.log("ingr, props", this.props);
     const display = (this.props.display) ? "block" : "none";
     return (
       <div style={{display}}>
@@ -354,8 +320,6 @@ class Modal extends React.Component {
     const display = (this.props.display) ? "block" : "none";
     console.log("props", this.props);
     const btnOneClicked = (this.props.type) == "Add" ? this.props.btnOneClicked : this.props.btnSaveClicked
-    // console.log("Modal Add display", display);
-    // console.log(this.props.ingredients);
     return (
       <div id="modal" style={{display}} className="modal-dialog">
         <div className="modal-content">
