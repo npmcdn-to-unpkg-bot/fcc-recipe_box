@@ -1,96 +1,334 @@
-// import React from 'react';
-// import ReactDOM from 'react-dom';
-// import Modal from 'Modal.js'
 
 // Setting localStorage for testing purposes
-// localStorage.setItem("recipes", '[{"title": "testMeal_1", "ingredients": ["ingredient_1", "ingredient_2"]}, {"title": "testMeal_2", "ingredients": ["ingredient_1", "ingredient_2"]}]');
+// localStorage.setItem("recipes", '[{"title": "testMeal_1", "ingredients": ["ingredient_1", "ingredient_2"]}, {"title": "testMeal_2", "ingredients": ["ingredient_1", "ingredient_2"]}, {"title": "testMeal_3", "ingredients": ["ingredient_1", "ingredient_2"]}, {"title": "testMeal_4", "ingredients": ["ingredient_1", "ingredient_2"]}]');
 
-class Layout extends React.Component {
+// ==============================================================================
+
+class App extends React.Component {
   constructor() {
     super();
-    this.state = {"recipes": []};
+    this.state = {"recipes": [],
+      modalAdd: false,
+      showModalEdit: false,
+      modalTitle: "",
+      newTitle: "",
+      newIngr: [],
+      modalInputOneValue: "",
+      modalInputTwoValue: ""
+      };
+
+    window.addEventListener("click", (e) => {
+      if(e.target.id === "modal" || e.target.id === "modalEdit") {
+        this.closeModal();
+      }
+    });
+    // close modal on "Esc"
+    document.addEventListener('keydown', (e) => {
+      if (e.keyCode === 27) {
+        console.log("App, esc pressed");
+        if (this.state.modalAdd) {
+          this.closeModal();
+        } else if (this.state.showModalEdit) {
+          this.closeModalEdit();
+        } else {
+          console.log("no modals open");
+          this.titleClicked();
+        }
+
+        // if (!this.state.modalAdd && !this.state.showModalEdit) {
+        //   console.log("no modals open");
+        //   this.titleClicked();
+        // }
+
+      }
+    });
   }
 
   componentDidMount() {
-    const recipes = JSON.parse(localStorage.getItem("recipes"));
-    const url = "./sample_recipes.json";
-
-    (!recipes) ? this.getJson(url) : this.setState({recipes});
-  }
-
-  getJson(url) {
-    const request = new XMLHttpRequest();
-    request.onreadystatechange = () => {
-      if (request.readyState === 4 && request.status === 200) {
-        this.setState({"recipes": request.response});
-      }
+    // getting data to this.state.recipes from localStorage
+    let fromStorage = JSON.parse(localStorage.getItem("recipes"));
+    // if no data in localStorage load sample data
+    // fromStorage ? fromStorage : fromStorage = sample_recipes;
+    // add "show" and "id" properties to recipes
+    if (fromStorage) {
+      const recipes = fromStorage.map((item, i) => {
+        return Object.assign(item, {show: false}, {id: i});
+      })
+      this.setState({recipes});
     }
-    request.open("GET", url);
-    request.responseType = "json";
-    request.send();
   }
 
-  render() {
-    return (
-      <div>
-        <Recipes data={this.state.recipes} />
-        <AddRecipeButton />
-      </div>
-    );
-  }
-}
-
-class Recipes extends React.Component {
+  // deleteRecipe(dataArr, i) {
+  //   const recipes = JSON.parse(localStorage.getItem("recipes"));
+  //   dataArr.splice(i, 1);
+  //   this.setState({recipes: dataArr});
+  //   localStorage.setItem("recipes", JSON.stringify(dataArr));
+  // }
 
   getRecipes() {
     let result = [];
-    for (let i = 0; i < this.props.data.length; i++) {
-      result.push(<Recipe key={i} data={this.props.data[i]}/>)
+    let dataArr = this.state.recipes;
+    for (let i = 0; i < dataArr.length; i++) {
+      result.push(
+        <Recipe key={dataArr[i].id}
+        title={dataArr[i].title}
+        ingredients={dataArr[i].ingredients}
+        visible={dataArr[i].show}
+        titleClicked={this.titleClicked.bind(this, dataArr, dataArr[i].id)}
+        deleteRecipe={this.deleteRecipe.bind(this, dataArr, dataArr[i].id)}
+        editRecipe={this.showModalEdit.bind(this, dataArr, dataArr[i].id)}
+        newTitle={this.newTitle.bind(this)}
+        showModalEdit={this.state.showModalEdit}
+        closeModalEdit={this.closeModalEdit.bind(this)}
+        saveRecipe={this.saveRecipe.bind(this, dataArr, dataArr[i].id)}
+        />);
     }
     return result;
   }
 
+  // toggle clicked recipe
+  titleClicked(arr=this.state.recipes, id=-1) {
+      // console.log("title clicked", arr, id);
+      arr.map((item, i) => {
+          if (i !== id) {
+              return item.show = false;
+          }
+      })
+      if(id > -1) {
+        arr[id].show = arr[id].show ? false : true;
+      }
+      this.setState({recipes: arr})
+  }
+
+  showModalAdd(arr) {
+    // console.log("showModalAdd clicked, arr", arr);
+    this.setState({
+      modalAdd: true,
+      modalTitle: "Add recipe",
+      btnOneTitle: "Add",
+      btnTwoTitle: "Cancel",
+      newTitle: "",
+      modalInputOneValue: this.state.newTitle,
+      newIngr: undefined,
+      modalInputTwoValue: this.state.newIngr
+    })
+    // closa all tabs
+    this.titleClicked(arr, -1);
+  }
+
+  showModalEdit(arr, id) {
+    console.log("modalEdit clicked");
+    this.setState({showModalEdit: true})
+    this.setState({newTitle: arr[id].title})
+    this.setState({newTitle: arr[id].ingredients.join(",")})
+    let title = this.state.newTitle;
+    // const recipes = this.state.recipes.slice(); // arr
+    // const id = this.state.recipes.length; // id
+    let ingrList = this.state.newIngr;
+    const ingredients = this.joinArray(ingrList);
+
+    if (title || ingredients) {
+      if (!title) {
+        title = "Recipe"
+      }
+      // recipes.push({id, title, ingredients})
+      arr[id].title = title;
+      arr[id].ingredients = ingredients
+    }
+    this.setState({newTitle: "", newIngr: "", modalAdd: false, arr})
+    localStorage.setItem("recipes", JSON.stringify(arr));
+
+  }
+
+  addRecipe() {
+    console.log("addRecipe");
+    let ingredients;
+    let title = this.state.newTitle;
+    const recipes = this.state.recipes.slice();
+    const id = this.state.recipes.length;
+    let ingrList = this.state.newIngr;
+    if (ingrList) {
+      ingredients = this.parseIngrList(ingrList);
+    }
+
+    console.log(title, ingredients);
+    if (title || ingredients) {
+      if (!title) {
+        title = "Recipe"
+      }
+      recipes.push({id, title, ingredients})
+    }
+    this.setState({newTitle: "", newIngr: "", modalAdd: false, recipes})
+    localStorage.setItem("recipes", JSON.stringify(recipes));
+  }
+  // editRecipe(arr, i) {
+  //   console.log("editRecipe");
+  //
+  // }
+  deleteRecipe(arr, i) {
+    // console.log("deleteRecipe");
+    arr.splice(i, 1);
+
+    this.setState({recipes: []})
+    this.setState({recipes: arr})
+    if (arr.length === 0) {
+      localStorage.removeItem("recipes");
+      return
+    }
+    // console.log("arr", arr);
+    arr.map((item, i) => {
+      // console.log("item", item);
+      return Object.assign(item, {show: false}, {id: i})
+    })
+    localStorage.setItem("recipes", JSON.stringify(arr));
+    const fromStorage = JSON.parse(localStorage.getItem("recipes"));
+    // console.log("fromStorage", fromStorage);
+    // const recipes = fromStorage.map((item, i) => {
+    //   // add show and id properties to recipes
+    //   return Object.assign({}, item, {show: false}, {id: i});
+    // })
+    // console.log(recipes);
+  }
+
+  saveRecipe(recipes, id) {
+    // console.log("save clicked", arr, id);
+
+    let title = this.state.newTitle;
+    // const recipes = this.state.recipes.slice(); // arr
+    // const id = this.state.recipes.length; // id
+    let ingrList = this.state.newIngr;
+    const ingredients = ingrList.split(",");
+
+    if (title || ingredients) {
+      if (!title) {
+        title = "Recipe"
+      }
+      // recipes.push({id, title, ingredients})
+      recipes[id].title = title;
+      recipes[id].ingredients = ingredients
+    }
+    this.setState({newTitle: "", newIngr: "", showModalEdit: false, recipes})
+    localStorage.setItem("recipes", JSON.stringify(recipes));
+
+
+  }
+  parseIngrList(text='') {
+    return text.split(",")
+  }
+  joinArray(arr) {
+    return arr.join(", ")
+  }
+  closeModal() {
+    this.setState({modalAdd: false, newTitle: "", newIngr: ""})
+  }
+  closeModalEdit() {
+    this.setState({showModalEdit: false})
+  }
+  newTitle(e) {
+    console.log("newTitle");
+    let content = e.target.value;
+    console.log(content);
+    this.setState({newTitle: content})
+  }
+  newIngr(e) {
+    let content = e.target.value;
+    console.log(content);
+    this.setState({newIngr: content})
+  }
+  getCurrentRecipe() {
+    const recipes = this.state.recipes.slice();
+    const active = recipes.map((item) => {
+      if (item.visible) {
+        return item
+      }
+    })
+    return active.title
+  }
+
   render() {
+    // console.log(this.state);
     const recipes = this.getRecipes();
+    const style = {
+      width: "100%",
+      maxWidth: "768px",
+      margin: "auto"
+    }
+    let title, ingredients
     return (
-      <div className="recipes">
+      <div style={style}>
         {recipes}
+        <Button
+          title="Add"
+          clicked={this.showModalAdd.bind(this, this.state.recipes)} />
+        <Modal
+          display={this.state.modalAdd}
+          modalTitle={this.state.modalTitle}
+          btnOne={this.state.btnOneTitle}
+          btnTwo={this.state.btnTwoTitle}
+          modalInputOneValue={this.state.newTitle}
+          modalInputTwoValue={this.state.newIngr}
+          newTitleValue={this.state.newTitle}
+          closeModal={this.closeModal.bind(this)}
+          btnOneClicked={this.addRecipe.bind(this)}
+          newTitle={this.newTitle.bind(this)}
+          newIngr={this.newIngr.bind(this)}
+          value={this.state.newTitle}
+          valueIngr={this.state.newIngr} />
       </div>
-    );
+    )
   }
 }
 
+// class Recipes extends React.Component {
+//   render() {
+//     return (
+//       <div className="recipes">
+//         {this.props.recipes}
+//       </div>
+//     );
+//   }
+// }
+
 class Recipe extends React.Component {
-
-  getIngredients() {
-    let result = [];
-    for (let i = 0; i < this.props.data.length; i++) {
-      result.push(<Ingredients key={i} data={this.props.data[i]["ingredients"]} />);
-
-      // this.setState({title: this.props.data[i]["title"]});
-    }
-    console.log(result);
-    return result;
-  }
+  // constructor() {
+  //   super();
+  //   this.state = {showModalEdit: false}
+  // }
   render() {
-    console.log("Recipe, render, this.props", this.props);
-    // const title = this.props.data.title;
-    const ingredients = this.getIngredients();
+    // console.log("recipe, props", this.props);
+    const style = {
+      border: "1px solid lightgray"
+    }
     return (
-      <div>
-        <RecipeTitle title={this.props.data.title} />
-        <Ingredients data={this.props.data["ingredients"]} />
+      <div style={style}>
+        <RecipeTitle
+          title={this.props.title}
+          clicked={this.props.titleClicked}/>
+        <Ingredients
+          data={this.props.ingredients}
+          display={this.props.visible}
+          deleteRecipe={this.props.deleteRecipe}
+          editRecipe={this.props.editRecipe} />
       </div>
     );
+    // <ModalEdit
+    //   windowTitle={"Edit recipe"}
+    //   recipe={this.props.title}
+    //   ingredients={this.props.ingredients}
+    //   display={this.props.showModalEdit}
+    //   newTitle={this.props.newTitle}
+    //   closeModal={this.props.closeModalEdit}
+    //   saveClicked={this.props.saveRecipe} />
   }
 }
 
 class RecipeTitle extends React.Component {
   render() {
-    console.log("RecipeTitle props", this.props.data);
-    // console.log("RecipeTitle", this.props.data[0].title);
+    const style = {
+      backgroundColor: "lightblue"
+    }
     return (
-      <div>
+      <div style={style} onClick={this.props.clicked}>
         {this.props.title}
       </div>
     );
@@ -98,100 +336,97 @@ class RecipeTitle extends React.Component {
 }
 
 class Ingredients extends React.Component {
-  parseData() {
-    const dataArr = this.props.data;
-    let result = [];
-    for(let i = 0; i < dataArr.length; i++) {
-      result.push(<div key={i}>{dataArr[i]}</div>)
+  getItemList() {
+    if (this.props.data) {
+      return this.props.data.map((item, i) => {
+        return <div key={i}>{item}</div>
+      })
     }
-    return result;
   }
   render() {
-    console.log("Ingredients", this.props.data);
-    const ingredients = this.parseData();
+    // console.log("ingr, props", this.props);
+    const display = (this.props.display) ? "block" : "none";
     return (
-      <div>
-        {ingredients}
+      <div style={{display}}>
+        {this.getItemList()}
+        <Button title={"Delete"} className="btn-red" clicked={this.props.deleteRecipe}/>
+        <Button title={"Edit"} className="btn-gray" clicked={this.props.editRecipe}/>
       </div>
     );
-  }
-}
-
-class AddRecipeButton extends React.Component {
-  constructor() {
-    super();
-    this.state = {display: "none"}
-    // this.state = {display: "block"}
-  }
-
-  openModal() {
-    console.log("clicked");
-    this.setState({display: "block"});
-  }
-  closeModal() {
-    this.setState({display: "none"});
-  }
-  render() {
-    console.log("AddRecipeButton this.state.display", this.state.display);
-    const display = this.state.display;
-    return (
-      <div className="mod">
-      <button id="openModal" onClick={() => this.openModal()}>
-        Add Recipe
-      </button>
-      <Modal display={this.state.display} closeModal={this.closeModal.bind(this)} title="Add Recipe"/>
-    </div>
-    );
+// <Button title={"Edit"} className="btn-gray" clicked={this.props.editRecipe}/>
   }
 }
 
 class Button extends React.Component {
     render() {
       return (
-        <button onClick={this.props.clicked}>
+        <button onClick={this.props.clicked} className={this.props.className}>
           {this.props.title}
         </button>
       );
     }
 }
-Button.defaultProps = {type: "button", title: "Button", clicked: () => {console.log("click");}};
 
 class Modal extends React.Component {
-
-  constructor() {
-    super();
-    this.state = {display: "none"};
-    window.addEventListener("click", (e) => {
-      if(e.target.id === "modal") {
-        this.props.closeModal();
-      }
-    });
-    //close modal on "Esc"
-    document.addEventListener('keyup', (e) => {
-      if (e.keyCode === 27) {
-        this.props.closeModal();
-      }
-    });
+  stringifyArray(arr) {
+    return arr.join(",")
   }
 
   render() {
-    const display = this.props.display;
+    if(this.props.ingredients) {
+      const ingredients = this.stringifyArray(this.props.ingredients)
+    }
+    const display = (this.props.display) ? "block" : "none";
+    // console.log("Modal Add display", display);
+    // console.log(this.props.ingredients);
     return (
-      <div id="modal" style={{display: display}} className="modal-dialog">
+      <div id="modal" style={{display}} className="modal-dialog">
         <div className="modal-content">
-        <ModalTitle title={this.props.title}/>
-        <ModalInput />
-        <ModalInput />
-        <Button title={"Add"} />
-        <Button title={"Close"} clicked={this.props.closeModal}/>
+        <div>{this.props.modalTitle}</div>
+        <p>Recipe title</p>
+        <textarea id="inputTitle" rows={1} cols={20} placeholder={"Input recipe title"}
+        value={this.props.modalInputOneValue} onChange={this.props.newTitle}/>
+        <br />
+        <p>Ingredients</p>
+        <textarea id="inputIngredients" placeholder={"Input ingredients (separeted with comma)"}
+          rows={5} cols={20} value={this.props.modalInputTwoValue} onChange={this.props.newIngr}/>
+        <br />
+        <Button title={this.props.btnOne} clicked={this.props.btnOneClicked}/>
+        <Button title={this.props.btnTwo} bgColor={"gray"} clicked={this.props.closeModal}/>
         </div>
       </div>
     );
   }
 }
 
-class ModalTitle extends React.Component {
+// class ModalEdit extends React.Component {
+//   stringifyArray(arr) {
+//     return arr.join(",")
+//   }
+//   render() {
+//     const ingredients = this.stringifyArray(this.props.ingredients)
+//     // console.log("modal edit props", this.props);
+//     const display = (this.props.display) ? "block" : "none";
+//     // console.log("Modal Edit display", display);
+//     return (
+//       <div id="modalEdit" style={{display}} className="modal-dialog">
+//         <div className="modal-content">
+//         <ModalTitle title={this.props.windowTitle}/>
+//         <p>Recipe title</p>
+//         <textarea id="editInputTitle" rows={1} cols={20} autoFocus value={"testing"} onChange={this.props.newTitle} />
+//         <br />
+//         <p>Ingredients</p>
+//         <textarea id="editInputIngredients" rows={5} cols={20} defaultValue={ingredients} onChange={this.props.newIngr} />
+//         <br />
+//         <Button title={"Save"} clicked={this.props.saveClicked}/>
+//         <Button title={"Close"} bgColor={"gray"} clicked={this.props.closeModal}/>
+//         </div>
+//       </div>
+//     );
+//   }
+// }
 
+class ModalTitle extends React.Component {
   render() {
     return (
       <div>
@@ -200,7 +435,6 @@ class ModalTitle extends React.Component {
     );
   }
 }
-
 ModalTitle.defaultProps = {title: "ModalTitle"};
 
 class ModalInput extends React.Component {
@@ -209,7 +443,7 @@ class ModalInput extends React.Component {
     return (
       <div>
         {this.props.title}
-        <input placeholder={this.props.placeholder}>
+        <input placeholder={this.props.placeholder} value={this.props.value}>
         </input>
       </div>
     );
@@ -219,5 +453,5 @@ class ModalInput extends React.Component {
 ModalInput.defaultProps = {title: "Title", placeholder: "Input here..."};
 
 ReactDOM.render(
-  <Layout />, document.getElementById('app')
+  <App />, document.getElementById('app')
   );
