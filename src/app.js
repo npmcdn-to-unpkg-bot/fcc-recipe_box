@@ -27,13 +27,9 @@ class App extends React.Component {
     // close modal on "Esc"
     document.addEventListener('keydown', (e) => {
       if (e.keyCode === 27) {
-        console.log("App, esc pressed");
         if (this.state.modalAdd) {
           this.closeModal();
-        } else if (this.state.showModalEdit) {
-          this.closeModalEdit();
         } else {
-          console.log("no modals open");
           this.titleClicked();
         }
       }
@@ -68,7 +64,6 @@ class App extends React.Component {
         editRecipe={this.showModalEdit.bind(this, dataArr, dataArr[i].id)}
         newTitle={this.newTitle.bind(this)}
         showModalEdit={this.state.showModalEdit}
-        closeModalEdit={this.closeModalEdit.bind(this)}
         />);
     }
     return result;
@@ -113,7 +108,8 @@ class App extends React.Component {
       id: id,
       modalType: "Save",
       modalInputOneValue: this.state.newTitle,
-      newIngr: this.joinArray(arr[id].ingredients),
+      // newIngr: this.joinArray(arr[id].ingredients),
+      newIngr: arr[id].ingredients.join(";"),
       modalInputTwoValue: this.state.newIngr
     })
   }
@@ -126,7 +122,7 @@ class App extends React.Component {
     const id = this.state.recipes.length;
     let ingrList = this.state.newIngr;
     if (ingrList) {
-      ingredients = this.parseIngrList(ingrList);
+      ingredients = ingrList.split(";");
     }
 
     if (title || ingredients) {
@@ -172,20 +168,8 @@ class App extends React.Component {
     localStorage.setItem("recipes", JSON.stringify(recipes));
   }
 
-  parseIngrList(text='') {
-    return text.split(";")
-  }
-
-  joinArray(arr) {
-    return arr.join(";")
-  }
-
   closeModal() {
     this.setState({modalAdd: false, newTitle: "", newIngr: ""})
-  }
-
-  closeModalEdit() {
-    this.setState({showModalEdit: false})
   }
 
   newTitle(e) {
@@ -196,16 +180,6 @@ class App extends React.Component {
   newIngr(e) {
     let content = e.target.value;
     this.setState({newIngr: content})
-  }
-
-  getCurrentRecipe() {
-    const recipes = this.state.recipes.slice();
-    const active = recipes.map((item) => {
-      if (item.visible) {
-        return item
-      }
-    })
-    return active.title
   }
 
   render() {
@@ -249,27 +223,12 @@ class Recipe extends React.Component {
     }
     return (
       <div style={style}>
-        <RecipeTitle
-          title={this.props.title}
-          clicked={this.props.titleClicked}/>
+        <div className="recipe-title" onClick={this.props.titleClicked}>{this.props.title}</div>
         <Ingredients
           data={this.props.ingredients}
           display={this.props.visible}
           deleteRecipe={this.props.deleteRecipe}
           editRecipe={this.props.editRecipe} />
-      </div>
-    );
-  }
-}
-
-class RecipeTitle extends React.Component {
-  render() {
-    const style = {
-      backgroundColor: "lightblue"
-    }
-    return (
-      <div style={style} onClick={this.props.clicked}>
-        {this.props.title}
       </div>
     );
   }

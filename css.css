@@ -34,7 +34,9 @@ html, body {
   border: 2px solid gray;
   /*z-index: 100;*/
 }
-
+.recipe-title {
+  background-color: lightblue;
+}
 .btn-red {
   background-color: red;
 }
