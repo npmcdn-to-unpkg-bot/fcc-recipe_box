@@ -219,9 +219,7 @@ class App extends React.Component {
     return (
       <div style={style}>
         {recipes}
-        <Button
-          title="Add"
-          clicked={this.showModalAdd.bind(this, this.state.recipes)} />
+        <button onClick={this.showModalAdd.bind(this, this.state.recipes)}>Add recipe</button>
         <Modal
           type={this.state.modalType}
           id={this.state.id}
@@ -290,21 +288,11 @@ class Ingredients extends React.Component {
     return (
       <div style={{display}}>
         {this.getItemList()}
-        <Button title={"Delete"} className="btn-red" clicked={this.props.deleteRecipe}/>
-        <Button title={"Edit"} className="btn-gray" clicked={this.props.editRecipe}/>
+        <button className="btn-red" onClick={this.props.deleteRecipe}>Delete</button>
+        <button className="btn-gray" onClick={this.props.editRecipe}>Edit</button>
       </div>
     );
   }
-}
-
-class Button extends React.Component {
-    render() {
-      return (
-        <button onClick={this.props.clicked} className={this.props.className}>
-          {this.props.title}
-        </button>
-      );
-    }
 }
 
 class Modal extends React.Component {
@@ -325,46 +313,20 @@ class Modal extends React.Component {
         <div className="modal-content">
         <div>{this.props.modalTitle}</div>
         <p>Recipe title</p>
-        <textarea id="inputTitle" rows={1} cols={20} placeholder={"Input recipe title"}
+        <textarea id="inputTitle" rows={1} cols={40} placeholder={"Input recipe title"}
         value={this.props.modalInputOneValue} onChange={this.props.newTitle}/>
         <br />
         <p>Ingredients</p>
         <textarea id="inputIngredients" placeholder={"Input ingredients (separeted with semicolon (;))"}
-          rows={5} cols={20} value={this.props.modalInputTwoValue} onChange={this.props.newIngr}/>
+          rows={6} cols={40} value={this.props.modalInputTwoValue} onChange={this.props.newIngr}/>
         <br />
-        <Button title={this.props.btnOne} clicked={btnOneClicked}/>
-        <Button title={this.props.btnTwo} bgColor={"gray"} clicked={this.props.closeModal}/>
+        <button title={this.props.btnOne} onClick={btnOneClicked}>{this.props.btnOne}</button>
+        <button title={this.props.btnTwo} onClick={this.props.closeModal}>{this.props.btnTwo}</button>
         </div>
       </div>
     );
   }
 }
-
-class ModalTitle extends React.Component {
-  render() {
-    return (
-      <div>
-        {this.props.title}
-      </div>
-    );
-  }
-}
-ModalTitle.defaultProps = {title: "ModalTitle"};
-
-class ModalInput extends React.Component {
-
-  render() {
-    return (
-      <div>
-        {this.props.title}
-        <input placeholder={this.props.placeholder} value={this.props.value}>
-        </input>
-      </div>
-    );
-  }
-}
-
-ModalInput.defaultProps = {title: "Title", placeholder: "Input here..."};
 
 ReactDOM.render(
   <App />, document.getElementById('app')
