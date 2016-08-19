@@ -144,10 +144,13 @@ class App extends React.Component {
   deleteRecipe(arr, i) {
     arr.splice(i, 1);
     this.setState({recipes: arr})
-    if (arr.length === 0) {
-      localStorage.removeItem("recipes");
-      return
-    }
+
+    // uncomment this to load default recipes if all recipes are deleted
+    // if (arr.length === 0) {
+    //   localStorage.removeItem("recipes");
+    //   return
+    // }
+
     arr.map((item, i) => {
       return Object.assign(item, {show: false}, {id: i})
     })
