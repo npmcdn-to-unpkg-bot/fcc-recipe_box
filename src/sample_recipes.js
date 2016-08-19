@@ -1,8 +1,8 @@
 const sample_recipes = [{
-  "title": "oatmeal",
+  "title": "Oatmeal",
   "ingredients": ["oats", "raisins", "salt"]
 }, {
-  "title": "omlet",
+  "title": "Omlet",
   "ingredients": ["eggs", "salt", "pepper"]
 }, {
   "title": "A Good Easy Garlic Chicken",
@@ -13,7 +13,4 @@ const sample_recipes = [{
     "1 teaspoon seasoning salt",
     "1 teaspoon onion powder"
   ]
-}, {
-  "title": "sample123",
-  "ingredients": ["one", "two", "three"]
 }]

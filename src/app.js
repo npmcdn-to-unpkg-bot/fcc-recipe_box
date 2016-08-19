@@ -1,8 +1,4 @@
-
-// Setting localStorage for testing purposes
-// localStorage.setItem("recipes", '[{"title": "testMeal_1", "ingredients": ["ingredient_1", "ingredient_2"]}, {"title": "testMeal_2", "ingredients": ["ingredient_1", "ingredient_2"]}, {"title": "testMeal_3", "ingredients": ["ingredient_1", "ingredient_2"]}, {"title": "testMeal_4", "ingredients": ["ingredient_1", "ingredient_2"]}]');
-
-// ==============================================================================
+// var ReactTransitionGroup = React.addons.CSSTransitionGroup;
 
 class App extends React.Component {
   constructor() {
@@ -16,7 +12,8 @@ class App extends React.Component {
       modalType: "",
       modalType: "Add",
       modalInputOneValue: "",
-      modalInputTwoValue: ""
+      modalInputTwoValue: "",
+      ingrVisible: false
       };
 
     window.addEventListener("click", (e) => {
@@ -40,7 +37,7 @@ class App extends React.Component {
     // getting data to this.state.recipes from localStorage
     let fromStorage = JSON.parse(localStorage.getItem("recipes"));
     // if no data in localStorage load sample data
-    // fromStorage ? fromStorage : fromStorage = sample_recipes;
+    fromStorage ? fromStorage : fromStorage = sample_recipes;
     // add "show" and "id" properties to recipes
     if (fromStorage) {
       const recipes = fromStorage.map((item, i) => {
@@ -59,6 +56,7 @@ class App extends React.Component {
         title={dataArr[i].title}
         ingredients={dataArr[i].ingredients}
         visible={dataArr[i].show}
+        // visible={this.ingrVisible.bind(this, dataArr[i].show)}
         titleClicked={this.titleClicked.bind(this, dataArr, dataArr[i].id)}
         deleteRecipe={this.deleteRecipe.bind(this, dataArr, dataArr[i].id)}
         editRecipe={this.showModalEdit.bind(this, dataArr, dataArr[i].id)}
@@ -68,18 +66,24 @@ class App extends React.Component {
     }
     return result;
   }
-
+  ingrVisible(is) {
+    console.log("ingrVisible");
+    this.setState({ingrVisible: is})
+    return is;
+  }
   // toggle clicked recipe
-  titleClicked(arr=this.state.recipes, id=-1) {
-      arr.map((item, i) => {
-          if (i !== id) {
-              return item.show = false;
-          }
-      })
-      if(id > -1) {
-        arr[id].show = arr[id].show ? false : true;
+  titleClicked(arr = this.state.recipes, id = -1) {
+    arr.map((item, i) => {
+      if (i !== id) {
+        return item.show = false;
       }
-      this.setState({recipes: arr})
+    })
+    if (id > -1) {
+      arr[id].show = arr[id].show ? false : true;
+    }
+    this.setState({
+      recipes: arr
+    })
   }
 
   showModalAdd(arr) {
@@ -131,7 +135,9 @@ class App extends React.Component {
       }
       recipes.push({id, title, ingredients})
     }
-    this.setState({newTitle: "", newIngr: "", modalAdd: false, recipes})
+    // this.setState({newTitle: "", newIngr: "", modalAdd: false, recipes})
+    this.setState({recipes});
+    this.closeModal();
     localStorage.setItem("recipes", JSON.stringify(recipes));
   }
 
@@ -164,12 +170,18 @@ class App extends React.Component {
       recipes[id].ingredients = ingredients
     }
 
-    this.setState({newTitle: "", newIngr: "", modalAdd: false, recipes})
+    this.setState({recipes});
+    this.closeModal();
     localStorage.setItem("recipes", JSON.stringify(recipes));
   }
 
   closeModal() {
-    this.setState({modalAdd: false, newTitle: "", newIngr: ""})
+    const modal = document.getElementById('modal');
+    modal.classList.add("modal-close");
+    setTimeout(() => {
+      this.setState({modalAdd: false, newTitle: "", newIngr: ""});
+      modal.classList.remove("modal-close");
+    }, 200)
   }
 
   newTitle(e) {
@@ -193,7 +205,8 @@ class App extends React.Component {
     return (
       <div style={style}>
         {recipes}
-        <button onClick={this.showModalAdd.bind(this, this.state.recipes)}>Add recipe</button>
+        <button className="btn btn-add" onClick={this.showModalAdd.bind(this, this.state.recipes)}>Add recipe</button>
+        <Footer />
         <Modal
           type={this.state.modalType}
           id={this.state.id}
@@ -218,6 +231,7 @@ class App extends React.Component {
 
 class Recipe extends React.Component {
   render() {
+    // console.log(this.props);
     const style = {
       border: "1px solid lightgray"
     }
@@ -227,6 +241,7 @@ class Recipe extends React.Component {
         <Ingredients
           data={this.props.ingredients}
           display={this.props.visible}
+          titleClicked={this.props.titleClicked}
           deleteRecipe={this.props.deleteRecipe}
           editRecipe={this.props.editRecipe} />
       </div>
@@ -235,22 +250,42 @@ class Recipe extends React.Component {
 }
 
 class Ingredients extends React.Component {
+
   getItemList() {
     if (this.props.data) {
+      let addClass = this.props.display ? "ingrListItem" : "ingrHideItem";
       return this.props.data.map((item, i) => {
-        return <div key={i}>{item}</div>
+        return <div key={i} className={addClass}>{item}</div>
       })
     }
   }
+  // componentWillRender() {
+  //   console.log("componentWillRender");
+  // }
+
   render() {
+    console.log(this.props);
     const display = (this.props.display) ? "block" : "none";
+    let ingrListClass = "ingredientsList"
+
+
     return (
-      <div style={{display}}>
+      <div className={ingrListClass} style={{display}}>
         {this.getItemList()}
-        <button className="btn-red" onClick={this.props.deleteRecipe}>Delete</button>
-        <button className="btn-gray" onClick={this.props.editRecipe}>Edit</button>
+        <button className="btn btn-ingr btn-red" onClick={this.props.deleteRecipe}>Delete</button>
+        <button className="btn btn-ingr btn-blue" onClick={this.props.editRecipe}>Edit</button>
       </div>
     );
+  }
+}
+
+class Footer extends React.Component {
+  render() {
+    return (
+      <footer>
+      <a href="https://jenovs.github.io/fcc-recipe_box/" target="_blank">Source code on GitHub</a>
+      </footer>
+    )
   }
 }
 
@@ -260,7 +295,7 @@ class Modal extends React.Component {
   }
 
   render() {
-    console.log("modal props", this.props);
+    // console.log("modal props", this.props);
     if(this.props.ingredients) {
       const ingredients = this.stringifyArray(this.props.ingredients)
     }
@@ -270,17 +305,19 @@ class Modal extends React.Component {
     return (
       <div id="modal" style={{display}} className="modal-dialog">
         <div className="modal-content">
-        <div>{this.props.modalTitle}</div>
+        <div className="modalTitle">{this.props.modalTitle}</div>
+        <div className="inputs">
         <p>Recipe title</p>
-        <textarea id="inputTitle" rows={1} cols={40} placeholder={"Input recipe title"}
+        <textarea id="inputTitle" autoFocus rows={1} cols={40} placeholder={"Input recipe title"}
         value={this.props.modalInputOneValue} onChange={this.props.newTitle}/>
         <br />
         <p>Ingredients</p>
         <textarea id="inputIngredients" placeholder={"Input ingredients (separeted with semicolon (;))"}
-          rows={6} cols={40} value={this.props.modalInputTwoValue} onChange={this.props.newIngr}/>
+          rows={4} cols={40} value={this.props.modalInputTwoValue} onChange={this.props.newIngr}/>
         <br />
-        <button title={this.props.btnOne} onClick={btnOneClicked}>{this.props.btnOne}</button>
-        <button title={this.props.btnTwo} onClick={this.props.closeModal}>{this.props.btnTwo}</button>
+        </div>
+        <button className="btn btn-modal btn-blue" title={this.props.btnOne} onClick={btnOneClicked}>{this.props.btnOne}</button>
+        <button className="btn btn-modal btn-red" title={this.props.btnTwo} onClick={this.props.closeModal}>{this.props.btnTwo}</button>
         </div>
       </div>
     );
