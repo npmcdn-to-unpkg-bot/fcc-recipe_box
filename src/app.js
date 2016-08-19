@@ -283,7 +283,7 @@ class Footer extends React.Component {
   render() {
     return (
       <footer>
-      <a href="https://jenovs.github.io/fcc-recipe_box/" target="_blank">Source code on GitHub</a>
+      <a href="https://github.com/jenovs/fcc-recipe_box" target="_blank">Source code on GitHub</a>
       </footer>
     )
   }
